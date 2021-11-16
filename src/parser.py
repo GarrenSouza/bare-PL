@@ -1,10 +1,24 @@
 import functools
+from enum import Enum
 from function import Function
 from simulator import Simulator as Sim
 
 class Parser():
 
+    # let, slet, def, begin, end, ifzero, attrib, inc
+    class Keywords(Enum):
+        attribution = "give"
+        function_definition = "def"
+        local_variable = "let"
+        static_local_variable = "slet"
+        block_start = "begin"
+        block_end = "end"
+        conditional = "ifzero"
+        increment = "inc"
+        return_statement = "return"
+
     def __init__(self, file_path):
+        self.file_path = file_path
         self.functions = {}
         self.static_vars = {}
         self.current_line = 0
@@ -16,13 +30,38 @@ class Parser():
 
     def load_lines(self, file_path):
         with open(file_path, "r") as src_file:
-            lines = list(filter(lambda x: x != "", [line.strip() for line in src_file.readlines()]))
+            lines = [line.strip() for line in src_file.readlines()]
         return lines
 
-    # key operations parsing
+    def print_bear(self):
+        print('''$$$$$$$$$$$$**$$$$$$$$$**$$$$$$$$$$$$$$$
+$$$$$$$$$$"   ^$$$$$$F    *$$$$$$$$$$$$$
+$$$$$$$$$     z$$$$$$L    ^$$$$$$$$$$$$$
+$$$$$$$$$    e$$$$$$$$$e  J$$$$$$$$$$$$$
+$$$$$$$$$eee$$$$$$$$$$$$$e$$$$$$$$$$$$$$
+$$$$$$$$b$$$$$$$BEAR$$$$$$$*$$$$$$$$$$$$
+$$$$$$$)$$$$P"e^$$$F$r*$$$$F"$$$$$$$$$$$
+$$$$$$$d$$$$  "z$$$$"  $$$$%  $3$$$$$$$$
+$$$$*"""*$$$  .$$$$$$ z$$$*   ^$e*$$$$$$
+$$$"     *$$ee$$$$$$$$$$*"     $$$C$$$$$
+$$$.      "***$$"*"$$""        $$$$e*$$$
+$$$b          "$b.$$"          $$$$$b"$$
+$$$$$c.         """            $$$$$$$^$''')
+    
+    # parsing key operations
+    def print_parse_call(self, keyword):
+        print(f">> parsing {keyword}")
+
+    def print_parse_line(self, line):
+        print(f"@ line[{self.current_line + 1}] {line}")
+
+    def define_static_variable(self, func, var_name):
+        if func.name not in self.static_vars.keys():
+            self.static_vars[func.name] = {}
+        self.static_vars[func.name][var_name] = 0
 
     def parse_def(self, tokens, static_parent):
-        print("parse_def")
+        self.print_parse_call(self.Keywords.function_definition.value)
         func = Function(tokens[1], static_parent) # static_parent é activation frame ou func?
         for param in tokens[2:]:
             func.add_param(param)
@@ -33,36 +72,36 @@ class Parser():
         return []
 
     def parse_block(self, func):
-        print("parse_block")
+        self.print_parse_call(self.Keywords.block_start.value)
+        self.print_parse_line(self.lines[self.current_line])
         self.inc_current_line(1)
         tokens = self.lines[self.current_line].split(" ")
         operations = []
-        # let, slet, def, begin, end, ifzero, attrib, inc
-        print(f"parsing> {tokens}")
-        while tokens[0] != "end":
-            if tokens[0] == "def":  # ok
+        self.print_parse_line(self.lines[self.current_line])
+        while tokens[0] != self.Keywords.block_end.value:
+            if tokens[0] == self.Keywords.function_definition.value:
                 operations += self.parse_def(tokens, func)
-            elif tokens[0] == "ifzero": # ok
+            elif tokens[0] == self.Keywords.conditional.value:
                 operations += self.parse_ifzero(tokens, func)
-            elif tokens[0] == "let": # ok
+            elif tokens[0] == self.Keywords.local_variable.value:
                 operations += self.parse_let(tokens, func)
-            elif tokens[0] == "slet": # ok
+            elif tokens[0] == self.Keywords.static_local_variable.value:
                 operations += self.parse_slet(tokens, func)
-            elif tokens[0] == "attrib": # ok
+            elif tokens[0] == self.Keywords.attribution.value:
                 operations += self.parse_attrib(tokens, func)
-            elif tokens[0] == "inc": # ok
+            elif tokens[0] == self.Keywords.increment.value:
                 operations += self.parse_inc(tokens, func)
-            elif tokens[0] == "return":  # ok
+            elif tokens[0] == self.Keywords.return_statement.value:
                 operations += self.parse_return(tokens, func)
             else:
                 self.inc_current_line(1)
             tokens = self.lines[self.current_line].split(" ")
-            print(f"parsing> {tokens}")
+            self.print_parse_line(self.lines[self.current_line])
         self.inc_current_line(1)
         return operations
 
     def parse_ifzero(self, tokens, func):
-        print("parse_if_zero")
+        self.print_parse_call(self.Keywords.conditional.value)
         operations = []
         then_code = self.parse_block(func)
         else_offset = len(then_code)
@@ -71,7 +110,7 @@ class Parser():
 
             else_code = self.parse_block(func)
             then_offset = len(else_code)
-            operations = [(Sim.operations.IF_ZERO, else_offset, tokens[1])] + \
+            operations = [(Sim.operations.IF_ZERO, else_offset + 1, tokens[1])] + \
                             then_code + \
                             [(Sim.operations.SKIP, then_offset, tokens[1])] + \
                             else_code
@@ -81,7 +120,7 @@ class Parser():
         return operations
 
     def parse_return(self, tokens, func):
-        print("parse_return")
+        self.print_parse_call(self.Keywords.return_statement.value)
         operations = []
         if len(tokens) > 2:
             function_name = tokens[1]
@@ -93,7 +132,7 @@ class Parser():
         return operations
 
     def parse_inc(self, tokens, func):
-        print("parse_inc")
+        self.print_parse_call(self.Keywords.increment.value)
         operations = []
         operations.append((Sim.operations.INC, tokens[1], tokens[2], Sim.registers.RETURN_REG))
         operations.append((Sim.operations.ATTRIB, Sim.registers.AUX_REG, Sim.registers.RETURN_REG))
@@ -101,7 +140,7 @@ class Parser():
         return operations
 
     def parse_attrib(self, tokens, func):
-        print("parse_attrib")
+        self.print_parse_call(self.Keywords.attribution.value)
         operations = []
         variable = tokens[1]
         if len(tokens) > 3:
@@ -115,37 +154,43 @@ class Parser():
         return operations
 
     def parse_let(self, tokens, func):
-        print("parse_let")
+        self.print_parse_call(self.Keywords.local_variable.value)
         func.add_variable(tokens[1])
         self.inc_current_line(1)
         return []
 
     def parse_slet(self, tokens, func):
-        print("parse_slet")
+        self.print_parse_call(self.Keywords.static_local_variable.value)
         func.add_static_variable(tokens[1])
-        self.static_vars[func.name][tokens[1]] = 0
+        self.define_static_variable(func, tokens[1])
         self.inc_current_line(1)
         return []
 
     def init_parsing(self):
+        print("# the bear programming language...")
+        self.print_bear()
+        print("----> Starting interpreter...")
+        print(f"----> parsing: {self.file_path}")
         operations = []
         # let, slet, def, begin, end, ifzero, attrib, inc
         while self.current_line < len(self.lines):
             tokens = self.lines[self.current_line].split(" ")
-            if tokens[0] == "def":  # ok
+            self.print_parse_line(self.lines[self.current_line])
+            if tokens[0] == self.Keywords.function_definition.value:
                 operations += self.parse_def(tokens, self.global_scope_function)
-            elif tokens[0] == "ifzero": # ok
+            elif tokens[0] == self.Keywords.conditional.value:
                 operations += self.parse_ifzero(tokens, self.global_scope_function)
-            elif tokens[0] == "let": # ok
+            elif tokens[0] == self.Keywords.local_variable.value:
                 operations += self.parse_let(tokens, self.global_scope_function)
-            elif tokens[0] == "slet": # ok
+            elif tokens[0] == self.Keywords.static_local_variable.value:
                 operations += self.parse_slet(tokens, self.global_scope_function)
-            elif tokens[0] == "attrib": # ok
+            elif tokens[0] == self.Keywords.attribution.value:
                 operations += self.parse_attrib(tokens, self.global_scope_function)
-            elif tokens[0] == "inc": # ok
+            elif tokens[0] == self.Keywords.increment.value:
                 operations += self.parse_inc(tokens, self.global_scope_function)
-            else: # ok
+            else:
                 self.inc_current_line(1)
+        print(f"----> parsed successfully!")
 
 
 p = Parser("../examples/test.txt")
