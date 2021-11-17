@@ -1,0 +1,25 @@
+// this is a comment
+
+let a
+give a 25
+
+def main
+begin
+    slet c
+
+    def double x
+        begin
+            return inc x x
+        end
+
+    give a double a
+
+    ifzero a
+        begin
+            give a inc a 1
+        end
+    else
+        begin
+            give a 0
+        end
+end

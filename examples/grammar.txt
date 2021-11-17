@@ -1,0 +1,44 @@
+bare programming language grammar:
+    code:
+        constant:
+            A : {-}?[0-9]*
+
+        identifier:
+            [a-zA-Z]B
+            B : [a-Z0-9]identifier | Empty
+
+        variable_declaration:
+            let identifier
+
+        static_variable_declaration:
+            slet identifier
+
+        variable_attribution:
+            give identifier function_call | identifier | constant
+
+        function_definition:
+            def identifier identifier0 identifier1 ... identifierN
+                block_of_code
+
+        function_call:
+            identifier identifier0 identifier1 ... identifierN
+
+        conditional:
+            ifzero identifier | constant
+                block_of_code
+            B | Empty
+
+            B:
+            else
+                block_of_code
+
+        increment:
+            inc identifier identifier | constant
+
+        block_of_code:
+            begin
+                code
+            end
+
+        return_statement:
+            return identifier | function_call | constant
