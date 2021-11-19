@@ -3,28 +3,28 @@ bare programming language grammar:
         constant:
             A : {-}?[0-9]*
 
-        identifier:
+        v_identifier, f_identifier:
             [a-zA-Z]B
             B : [a-Z0-9]identifier | Empty
 
         variable_declaration:
-            let identifier
+            let v_identifier
 
         static_variable_declaration:
-            slet identifier
+            slet v_identifier
 
         variable_attribution:
-            give identifier function_call | identifier | constant
+            give v_identifier function_call | v_identifier | constant
 
         function_definition:
-            def identifier identifier0 identifier1 ... identifierN
+            def f_identifier v_identifier0 v_identifier1 ... v_identifierN
                 block_of_code
 
         function_call:
-            identifier identifier0 identifier1 ... identifierN
+            f_identifier v_identifier0 v_identifier1 ... v_identifierN
 
         conditional:
-            ifzero identifier | constant
+            ifzero v_identifier | constant
                 block_of_code
             B | Empty
 
@@ -33,7 +33,7 @@ bare programming language grammar:
                 block_of_code
 
         increment:
-            inc identifier identifier | constant
+            inc v_identifier v_identifier | constant
 
         block_of_code:
             begin
@@ -41,4 +41,4 @@ bare programming language grammar:
             end
 
         return_statement:
-            return identifier | function_call | constant
+            return v_identifier | function_call | constant
