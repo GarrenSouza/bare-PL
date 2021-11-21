@@ -11,9 +11,8 @@ class ActivationFrame():
         self.temp_vars = []
         self.previous_PC = 0
 
-    def __deepcopy__(self):
-        copy = ActivationFrame()
-        copy.owner = self.owner
+    def get_deep_copy(self):
+        copy = ActivationFrame(self.owner)
         copy.static_link = self.static_link
         copy.dynamic_link = self.dynamic_link
         copy.params = self.params.copy()

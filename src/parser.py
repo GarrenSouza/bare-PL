@@ -197,7 +197,7 @@ $$$$$c.         """            $$$$$$$^$''')
         print("# the bare programming language...")
         self.print_bear()
         print("----> Starting interpreter...")
-        print(f"----> parsing: {self.file_path}")
+        # print(f"----> parsing: {self.file_path}")
         operations = []
         # let, slet, def, begin, end, ifzero, attrib, inc
         while self.current_line < len(self.lines):
@@ -217,11 +217,15 @@ $$$$$c.         """            $$$$$$$^$''')
             #     operations += self.parse_inc(tokens, self.global_scope_function)
             else:
                 self.inc_current_line(1)
+        self.global_scope_function.operations = operations
         print(f"----> parsed successfully!")
 
 
+# p = Parser("c:/Users/garren/OneDrive - UFRGS/Computer Science/Bachelor/5-semester/MLP/TF/INF-01121-tf/examples/test.txt")
 p = Parser("../examples/test.txt")
 p.init_parsing()
 print("")
-for f in p.functions.values():
-    print(str(f)+"\n")
+# for f in p.functions.values():
+#     print(str(f)+"\n")
+simulator = Sim(p.functions, p.static_vars, Sim.scope_resolution_modes.DYNAMIC)
+simulator.execute()

@@ -1,36 +1,24 @@
-// this is a comment
-
-let a
-give a 25
-
-def main
+def mul a b
 begin
-    slet c
-
-    def double x
+    ifzero b
         begin
-            let banana
-            def triple x
-                begin
-                    let double
-                    give banana 0
-                    give double double x
-                end
-            return inc x x
-        end
-    give a double a
-
-    ifzero a
-        begin
-            give a inc a 1
+            return a
         end
     else
         begin
-            give a 0
+            let newb
+            give newb inc b -1
+
+            let next_mul
+            give next_mul mul a newb
+            
+            return inc a next_mul
         end
-    give c double 3
-    give k double c
-    give a inc c a
 end
 
-main
+def main
+begin
+    let result
+    give result mul 2 3
+    return result
+end

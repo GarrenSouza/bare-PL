@@ -1,7 +1,6 @@
 from activationFrame import ActivationFrame
 from enum import Enum
 from functools import reduce
-import copy
 
 class Function():
     
@@ -49,13 +48,13 @@ class Function():
         return output
 
     def get_var_scope(self, var_name):
-        if var_name in self.local_vars:
+        if var_name in self.local_vars.keys():
             return self.var_scope.LOCAL
-        if var_name in self.params:
+        if var_name in self.params.keys():
             return self.var_scope.PARAMETER
-        if var_name in self.static_vars:
+        if var_name in self.static_vars.keys():
             return self.var_scope.STATIC
-        if var_name in self.external_vars:
+        if var_name in self.external_vars.keys():
             return self.var_scope.EXTERNAL
         return self.var_scope.UNDEFINED
 
@@ -75,20 +74,19 @@ class Function():
         self.frame.external_vars.append(0)
         self.external_vars[name] = len(self.frame.external_vars) - 1
 
-    def get_activation_frame(self, caller_activation_frame):
-        deepcopy = copy.deepcopy(self.frame)
-        deepcopy.dynamic_link = caller_activation_frame
+    def get_activation_frame(self):
+        return self.frame.get_deep_copy()
 
     def set_var_value(self, destination, value, frame):
         destination_scope = self.get_var_scope(destination)
 
         if destination_scope == self.var_scope.LOCAL:
             frame.local_vars[self.local_vars[destination]] = value
-        if destination_scope == self.var_scope.PARAMETER:
+        elif destination_scope == self.var_scope.PARAMETER:
             frame.params[self.params[destination]] = value
-        if destination_scope == self.var_scope.STATIC:
+        elif destination_scope == self.var_scope.STATIC:
             frame.static_vars[self.static_vars[destination]] = value
-        if destination_scope == self.var_scope.EXTERNAL:
+        elif destination_scope == self.var_scope.EXTERNAL:
             frame.external_vars[self.external_vars[destination]] = value
 
     def get_var_value(self, var_name, frame):
