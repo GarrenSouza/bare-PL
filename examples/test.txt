@@ -9,9 +9,15 @@ begin
 
     def double x
         begin
+            let banana
+            def triple x
+                begin
+                    let double
+                    give banana 0
+                    give double double x
+                end
             return inc x x
         end
-
     give a double a
 
     ifzero a
@@ -22,4 +28,9 @@ begin
         begin
             give a 0
         end
+    give c double 3
+    give k double c
+    give a inc c a
 end
+
+main

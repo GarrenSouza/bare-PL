@@ -7,7 +7,9 @@ class ActivationFrame():
         self.params = []
         self.local_vars = []
         self.static_vars = []
+        self.external_vars = []
         self.temp_vars = []
+        self.previous_PC = 0
 
     def __deepcopy__(self):
         copy = ActivationFrame()

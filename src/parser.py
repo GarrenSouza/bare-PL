@@ -19,11 +19,11 @@ class Parser():
 
     def __init__(self, file_path):
         self.file_path = file_path
-        self.functions = {}
         self.static_vars = {}
         self.current_line = 0
         self.lines = self.load_lines(file_path)
-        self.global_scope_function = Function("__GLOBAL__", None)
+        self.global_scope_function = Function(Sim.reserved_functions.GLOBAL.value, None)
+        self.functions = {self.global_scope_function.name : self.global_scope_function}
 
     def inc_current_line(self, amount):
         self.current_line += amount
@@ -39,7 +39,7 @@ $$$$$$$$$$"   ^$$$$$$F    *$$$$$$$$$$$$$
 $$$$$$$$$     z$$$$$$L    ^$$$$$$$$$$$$$
 $$$$$$$$$    e$$$$$$$$$e  J$$$$$$$$$$$$$
 $$$$$$$$$eee$$$$$$$$$$$$$e$$$$$$$$$$$$$$
-$$$$$$$$b$$$$$$$BEAR$$$$$$$*$$$$$$$$$$$$
+$$$$$$$$b$$$$$$$BARE$$$$$$$*$$$$$$$$$$$$
 $$$$$$$)$$$$P"e^$$$F$r*$$$$F"$$$$$$$$$$$
 $$$$$$$d$$$$  "z$$$$"  $$$$%  $3$$$$$$$$
 $$$$*"""*$$$  .$$$$$$ z$$$*   ^$e*$$$$$$
@@ -67,8 +67,8 @@ $$$$$c.         """            $$$$$$$^$''')
             func.add_param(param)
 
         self.inc_current_line(1)
-        func.operations = self.parse_block(func)
         self.functions[func.name] = func
+        func.operations = self.parse_block(func)
         return []
 
     def parse_block(self, func):
@@ -89,8 +89,8 @@ $$$$$c.         """            $$$$$$$^$''')
                 operations += self.parse_slet(tokens, func)
             elif tokens[0] == self.Keywords.attribution.value:
                 operations += self.parse_attrib(tokens, func)
-            elif tokens[0] == self.Keywords.increment.value:
-                operations += self.parse_inc(tokens, func)
+            # elif tokens[0] == self.Keywords.increment.value:
+            #     operations += self.parse_inc(tokens, func)
             elif tokens[0] == self.Keywords.return_statement.value:
                 operations += self.parse_return(tokens, func)
             else:
@@ -105,17 +105,22 @@ $$$$$c.         """            $$$$$$$^$''')
         operations = []
         then_code = self.parse_block(func)
         else_offset = len(then_code)
+
+        param = tokens[1]
+        if not param.isnumeric() and func.get_var_scope(param) == Function.var_scope.UNDEFINED:
+            func.add_external_variable(param)
+
         if self.lines[self.current_line] == "else":
             self.inc_current_line(1)
 
             else_code = self.parse_block(func)
             then_offset = len(else_code)
-            operations = [(Sim.operations.IF_ZERO, else_offset + 1, tokens[1])] + \
+            operations = [(Sim.operations.IF_ZERO, else_offset + 1, param)] + \
                             then_code + \
-                            [(Sim.operations.SKIP, then_offset, tokens[1])] + \
+                            [(Sim.operations.SKIP, then_offset)] + \
                             else_code
         else:
-            operations = [(Sim.operations.IF_ZERO, else_offset, tokens[1])] + \
+            operations = [(Sim.operations.IF_ZERO, else_offset, param)] + \
                             then_code
         return operations
 
@@ -125,31 +130,53 @@ $$$$$c.         """            $$$$$$$^$''')
         if len(tokens) > 2:
             function_name = tokens[1]
             function_parameters = tokens[2:]
+
+            for param in function_parameters:
+                if not param.isnumeric() and func.get_var_scope(param) == Function.var_scope.UNDEFINED:
+                    func.add_external_variable(param)
+
             operations.append((Sim.operations.FUNCTION_CALL, function_name, function_parameters))
         else:
-            operations.append((Sim.operations.ATTRIB, Sim.registers.RETURN_REG, tokens[1]))
+            param = tokens[1]
+
+            if not param.isnumeric() and func.get_var_scope(param) == Function.var_scope.UNDEFINED:
+                func.add_external_variable(param)
+
+            operations.append((Sim.operations.ATTRIB, Sim.registers.RETURN_REG.value, param))
         self.inc_current_line(1)
         return operations
 
-    def parse_inc(self, tokens, func):
-        self.print_parse_call(self.Keywords.increment.value)
-        operations = []
-        operations.append((Sim.operations.INC, tokens[1], tokens[2], Sim.registers.RETURN_REG))
-        operations.append((Sim.operations.ATTRIB, Sim.registers.AUX_REG, Sim.registers.RETURN_REG))
-        self.inc_current_line(1)
-        return operations
+    # def parse_inc(self, tokens, func):
+    #     self.print_parse_call(self.Keywords.increment.value)
+    #     operations = []
+    #     operations.append((Sim.operations.INC, tokens[1], tokens[2], Sim.registers.RETURN_REG.value))
+    #     operations.append((Sim.operations.ATTRIB, Sim.registers.AUX_REG, Sim.registers.RETURN_REG.value))
+    #     self.inc_current_line(1)
+    #     return operations
 
     def parse_attrib(self, tokens, func):
         self.print_parse_call(self.Keywords.attribution.value)
         operations = []
         variable = tokens[1]
+
+        if not variable.isnumeric() and func.get_var_scope(variable) == Function.var_scope.UNDEFINED:
+                func.add_external_variable(variable)
+
         if len(tokens) > 3:
             function_name = tokens[2]
             function_parameters = tokens[3:]
+
+            for param in function_parameters:
+                if not param.isnumeric() and func.get_var_scope(param) == Function.var_scope.UNDEFINED:
+                    func.add_external_variable(param)
+
             operations.append((Sim.operations.FUNCTION_CALL, function_name, function_parameters))
-            operations.append((Sim.operations.ATTRIB, variable, Sim.registers.RETURN_REG))
+            operations.append((Sim.operations.ATTRIB, variable, Sim.registers.RETURN_REG.value))
         else:
-            operations.append((Sim.operations.ATTRIB, variable, tokens[2]))
+            param = tokens[2]
+            if not param.isnumeric() and func.get_var_scope(param) == Function.var_scope.UNDEFINED:
+                func.add_external_variable(param)
+            operations.append((Sim.operations.ATTRIB, variable, param))
         self.inc_current_line(1)
         return operations
 
@@ -167,7 +194,7 @@ $$$$$c.         """            $$$$$$$^$''')
         return []
 
     def init_parsing(self):
-        print("# the bear programming language...")
+        print("# the bare programming language...")
         self.print_bear()
         print("----> Starting interpreter...")
         print(f"----> parsing: {self.file_path}")
@@ -186,8 +213,8 @@ $$$$$c.         """            $$$$$$$^$''')
                 operations += self.parse_slet(tokens, self.global_scope_function)
             elif tokens[0] == self.Keywords.attribution.value:
                 operations += self.parse_attrib(tokens, self.global_scope_function)
-            elif tokens[0] == self.Keywords.increment.value:
-                operations += self.parse_inc(tokens, self.global_scope_function)
+            # elif tokens[0] == self.Keywords.increment.value:
+            #     operations += self.parse_inc(tokens, self.global_scope_function)
             else:
                 self.inc_current_line(1)
         print(f"----> parsed successfully!")

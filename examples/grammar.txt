@@ -33,7 +33,7 @@ bare programming language grammar:
                 block_of_code
 
         increment:
-            inc v_identifier v_identifier | constant
+            inc v_identifier | constant v_identifier | constant
 
         block_of_code:
             begin
