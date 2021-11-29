@@ -10,6 +10,7 @@ class Simulator():
         IF_ZERO         = 2
         SKIP            = 3
         FUNCTION_CALL   = 4
+        FUNCTION_RETURN = 5
 
     class scope_resolution_modes(Enum):
         STATIC = "__STATIC__"
@@ -71,33 +72,38 @@ class Simulator():
         self.program_counter += amount
 
     def attrib(self, instruction):
-        print(str(self.operations.ATTRIB.value) + " : " + str(instruction))
         
         destination = instruction[1]
         source = instruction[2]
-        
-        if source == self.registers.RETURN_REG.value:
+        if destination == self.registers.RETURN_REG.value:
+            if self.is_constant(source):
+                self.internal_registers[self.registers.RETURN_REG] = int(source)
+            else:
+                self.internal_registers[self.registers.RETURN_REG] = self.current_function.get_var_value(source, self.current_frame)
+        elif source == self.registers.RETURN_REG.value:
             self.current_function.set_var_value(destination, self.internal_registers[self.registers.RETURN_REG], self.current_frame)
-        elif source.isnumeric():
+        elif self.is_constant(source):
             self.current_function.set_var_value(destination, int(source), self.current_frame)
         else:
-            self.current_function.set_var_value(destination, source, self.current_frame)
+            source_value = self.current_function.get_var_value(source, self.current_frame)
+            self.current_function.set_var_value(destination, source_value, self.current_frame)
         self.inc_program_counter(1)
 
     def inc(self, instruction):
+        print(instruction)
         # op1, op2
         op1 = instruction[2][0]
         op2 = instruction[2][1]
 
-        op1_value = int(op1) if op1.isnumeric() else self.current_function.get_var_value(op1, self.current_frame)
-        op2_value = int(op2) if op1.isnumeric() else self.current_function.get_var_value(op2, self.current_frame)
+        op1_value = int(op1) if self.is_constant(op1) else self.current_function.get_var_value(op1, self.current_frame)
+        op2_value = int(op2) if self.is_constant(op2) else self.current_function.get_var_value(op2, self.current_frame)
 
         self.internal_registers[self.registers.RETURN_REG] = op1_value + op2_value
         self.inc_program_counter(1)
 
     def if_zero(self, instruction):
         # function, else_offset, op
-        operand_value = int(instruction[2]) if instruction[2].isnumeric() else self.current_function.get_var_value(instruction[2], self.current_frame)
+        operand_value = int(instruction[2]) if self.is_constant(instruction[2]) else self.current_function.get_var_value(instruction[2], self.current_frame)
         if operand_value == 0:
             self.inc_program_counter(1)
         else:
@@ -126,11 +132,15 @@ class Simulator():
         raise NameError
 
     def get_var_value_dynamically(self, var_name, frame):
+        if self.is_constant(var_name):
+            return int(var_name)
         if self.current_function.get_var_scope(var_name) == Function.var_scope.EXTERNAL:
             return self.current_function.get_var_value(var_name, self.get_target_scope_dynamically(var_name, frame))
         return self.current_function.get_var_value(var_name, frame)
 
     def get_var_value_statically(self, var_name, frame):
+        if self.is_constant(var_name):
+            return int(var_name)
         if self.current_function.get_var_scope(var_name) == Function.var_scope.EXTERNAL:
             return self.current_function.get_var_value(var_name, self.get_target_scope_statically(var_name, frame))
         return self.current_function.get_var_value(var_name, frame)
@@ -141,8 +151,7 @@ class Simulator():
     def set_var_value_statically(self, var_name, value, frame):
         self.current_function.set_var_value(var_name, value, self.get_target_scope_statically(var_name, frame))
 
-    def function_call(self, instruction):
-        print(str(self.operations.FUNCTION_CALL.value) + " : " + str(instruction))
+    def function_call(self, instruction):        
         function_name = instruction[1]
         if function_name == 'inc':
             self.inc(instruction)
@@ -183,16 +192,50 @@ class Simulator():
             # atualiza current_function DONE
             # reseta PC atual DONE
 
-    def execute(self):
+    def get_snapshot(self):
+        snapshot = "\n# PC: "
+        snapshot += f"  {str(self.program_counter)}\n"
+        snapshot += "# Next instruction: "
+        snapshot += f"  {str(self.current_function.operations[self.program_counter])}\n"
+        snapshot += "# Stack size: "
+        snapshot += f"  {str(len(self.stack))}\n"
+        snapshot += "# Registers:\n"
+        for register in self.registers:
+            snapshot += f"  {register.value} : {self.internal_registers[register]}\n"
+        
+        snapshot += f"\n[ {self.current_function.name} ]\n"
+        snapshot += "# Parameters\n"
+        for param, offset in self.current_function.params.items():
+            snapshot += f" -> {param} = {self.current_frame.params[offset]}\n"
+        snapshot += "# Local vars\n"
+        for var, offset in self.current_function.local_vars.items():
+            snapshot += f" -> {var} = {self.current_frame.local_vars[offset]}\n"
+        snapshot += "# Static vars\n"
+        for var, offset in self.current_function.static_vars.items():
+            snapshot += f" -> {var} = {self.current_frame.static_vars[offset]}\n"
+        snapshot += "# External vars\n"
+        for var, offset in self.current_function.external_vars.items():
+            snapshot += f" -> {var} = {self.current_frame.external_vars[offset]}\n"
+        snapshot += "# Static Link\n"
+        snapshot += f" -> {self.current_frame.static_link.owner.name}\n" if self.current_frame.static_link != None else " -> None\n"
+        snapshot += "# Dynamic Link\n"
+        snapshot += f" -> {self.current_frame.dynamic_link.owner.name}\n" if self.current_frame.dynamic_link != None else " -> None\n"
 
+        return snapshot
+    
+    def execute(self):
+        print("\n@ SIMULATOR")
+        interactive_mode = input("Enter interactive mode? (y/n)")
         self.functions[self.reserved_functions.GLOBAL.value].operations.append((self.operations.FUNCTION_CALL, self.reserved_functions.MAIN.value, []))
         self.function_call((self.operations.FUNCTION_CALL, self.reserved_functions.GLOBAL.value, []))
-
+        returned = False
         while len(self.stack) > 0:
-            while self.program_counter < len(self.current_function.operations):
+            while self.program_counter < len(self.current_function.operations) and not returned:
+                #print(self)
+                print(self.get_snapshot())
+                if(interactive_mode != 'n'):
+                    input("Press Enter to execute the next instruction...")
                 instruction = self.current_function.operations[self.program_counter]
-                print(self)
-                input("Press Enter to execute the next instruction...")
                 if instruction[0] == self.operations.ATTRIB:
                     self.attrib(instruction)
                 elif instruction[0] == self.operations.FUNCTION_CALL:
@@ -201,12 +244,18 @@ class Simulator():
                     self.if_zero(instruction)
                 elif instruction[0] == self.operations.SKIP:
                     self.skip(instruction)
+                elif instruction[0] == self.operations.FUNCTION_RETURN:
+                    returned = True
+            returned = False
             self.pop_activation_frame()
         print(f"Program terminated with status {self.internal_registers[self.registers.RETURN_REG]}")
 
     def push_activation_frame(self, frame):
         self.stack.append(frame)
         self.current_frame = frame
+
+    def is_constant(self, data):
+        return data.strip('-+').isnumeric()
 
     def pop_activation_frame(self):
         current_activation_frame = self.stack.pop()

@@ -115,12 +115,14 @@ $$$$$c.         """            $$$$$$$^$''')
 
             else_code = self.parse_block(func)
             then_offset = len(else_code)
-            operations = [(Sim.operations.IF_ZERO, else_offset + 1, param)] + \
+
+            # we have to add the skip length in the if-else case
+            operations = [(Sim.operations.IF_ZERO, else_offset + 2, param)] + \
                             then_code + \
                             [(Sim.operations.SKIP, then_offset)] + \
                             else_code
         else:
-            operations = [(Sim.operations.IF_ZERO, else_offset, param)] + \
+            operations = [(Sim.operations.IF_ZERO, else_offset + 1, param)] + \
                             then_code
         return operations
 
@@ -143,6 +145,7 @@ $$$$$c.         """            $$$$$$$^$''')
                 func.add_external_variable(param)
 
             operations.append((Sim.operations.ATTRIB, Sim.registers.RETURN_REG.value, param))
+        operations.append((Sim.operations.FUNCTION_RETURN, -1))
         self.inc_current_line(1)
         return operations
 
@@ -167,7 +170,7 @@ $$$$$c.         """            $$$$$$$^$''')
             function_parameters = tokens[3:]
 
             for param in function_parameters:
-                if not param.isnumeric() and func.get_var_scope(param) == Function.var_scope.UNDEFINED:
+                if not param.strip('-').isnumeric() and func.get_var_scope(param) == Function.var_scope.UNDEFINED:
                     func.add_external_variable(param)
 
             operations.append((Sim.operations.FUNCTION_CALL, function_name, function_parameters))
@@ -222,9 +225,9 @@ $$$$$c.         """            $$$$$$$^$''')
 
 
 # p = Parser("c:/Users/garren/OneDrive - UFRGS/Computer Science/Bachelor/5-semester/MLP/TF/INF-01121-tf/examples/test.txt")
-p = Parser("../examples/test.txt")
+p = Parser("C:/Users/garren/OneDrive - UFRGS/Computer Science/Bachelor/5-semester/MLP/TF/INF-01121-tf/examples/test.txt")
 p.init_parsing()
-print("")
+# print("")
 # for f in p.functions.values():
 #     print(str(f)+"\n")
 simulator = Sim(p.functions, p.static_vars, Sim.scope_resolution_modes.DYNAMIC)

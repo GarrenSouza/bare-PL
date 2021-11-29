@@ -2,7 +2,7 @@ def mul a b
 begin
     ifzero b
         begin
-            return a
+            return 0
         end
     else
         begin
@@ -16,9 +16,26 @@ begin
         end
 end
 
+def fat n
+begin
+    ifzero n
+    begin
+        return 1
+    end
+    let new_n
+    give new_n inc n -1
+    let res
+    give res fat new_n
+    give res mul res n
+    return res
+end
+
+def soma a b
+begin
+    return inc a b
+end
+
 def main
 begin
-    let result
-    give result mul 2 3
-    return result
+    return fat 4
 end
