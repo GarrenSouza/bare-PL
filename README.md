@@ -1,12 +1,25 @@
-## Bare PL
+## the Bare PL
 
-## Simulador de determinação de escopo (dinâmico versus estático): 
-  Desenvolver um simulador capaz de aceitar definições de subprogramas e variáveis locais, utilizando uma pseudolinguagem simples, que permita a definição de variáveis e escopos em diferentes níveis (global, bloco, subprograma), com aninhamento. Com base nisso, demonstrar como ficaria sua pilha de chamadas (call-stack) e o conteúdo das variáveis locais a cada passo de execução.A
+     $$$$$$$$$$$$**$$$$$$$$$**$$$$$$$$$$$$$$$
+     $$$$$$$$$$"   ^$$$$$$F    *$$$$$$$$$$$$$
+     $$$$$$$$$     z$$$$$$L    ^$$$$$$$$$$$$$
+     $$$$$$$$$    e$$$$$$$$$e  J$$$$$$$$$$$$$
+     $$$$$$$$$eee$$$$$$$$$$$$$e$$$$$$$$$$$$$$
+     $$$$$$$$b$$$$$$$BARE$$$$$$$*$$$$$$$$$$$$
+     $$$$$$$)$$$$P"e^$$$F$r*$$$$F"$$$$$$$$$$$
+     $$$$$$$d$$$$  "z$$$$"  $$$$%  $3$$$$$$$$     
+     $$$$*"""*$$$  .$$$$$$ z$$$*   ^$e*$$$$$$
+     $$$"     *$$ee$$$$$$$$$$*"     $$$C$$$$$
+     $$$.      "***$$"*"$$""        $$$$e*$$$
+     $$$b          "$b.$$"          $$$$$b"$$
+     $$$$$c.         """            $$$$$$$^$
 
-## Executando código
-  Basta executar
+## Lean = Lean Code + Lean Maschine
+  The first implementation of bare (called Lean as a word play for Lín, western representation of the chinese 林 - forest) was done resembling the Java runtime, where an intermediate representation is produced from the source code (Lean Code), and it can be run on any compatible machine (such as the Lean Maschine). You can check out more details covering from the rationale to a deep analysis of how bare came to be [right here](https://docs.google.com/document/d/1bwtWhC_AxdVxMREs_K065ps0y4MIXH4OhDtNnuXN6gI/edit?usp=sharing)(Pt-BR only).
+
+## Running
   ```python bare.py <path_to_source>```
 
-## Autores
-  Garrenlus Souza
-  Pedro Lago Mondadori
+## Authors
+  Garren Souza
+  Pedro L. Mondadori
