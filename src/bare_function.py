@@ -1,4 +1,4 @@
-from activationFrame import ActivationFrame
+from src.bare_activationFrame import ActivationFrame
 from enum import Enum
 from functools import reduce
 

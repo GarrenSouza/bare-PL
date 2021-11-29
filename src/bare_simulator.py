@@ -1,7 +1,7 @@
 from enum import Enum
 import functools
-from function import Function
-from activationFrame import ActivationFrame
+from src.bare_function import Function
+from src.bare_activationFrame import ActivationFrame
 
 class Simulator():
 

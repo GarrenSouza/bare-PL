@@ -30,11 +30,6 @@ begin
     return res
 end
 
-def soma a b
-begin
-    return inc a b
-end
-
 def main
 begin
     return fat 4

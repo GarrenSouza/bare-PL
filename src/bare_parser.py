@@ -1,7 +1,7 @@
 import functools
 from enum import Enum
-from function import Function
-from simulator import Simulator as Sim
+from src.bare_function import Function
+from src.bare_simulator import Simulator as Sim
 
 class Parser():
 
@@ -225,10 +225,10 @@ $$$$$c.         """            $$$$$$$^$''')
 
 
 # p = Parser("c:/Users/garren/OneDrive - UFRGS/Computer Science/Bachelor/5-semester/MLP/TF/INF-01121-tf/examples/test.txt")
-p = Parser("C:/Users/garren/OneDrive - UFRGS/Computer Science/Bachelor/5-semester/MLP/TF/INF-01121-tf/examples/test.txt")
-p.init_parsing()
+# p = Parser("C:/Users/garren/OneDrive - UFRGS/Computer Science/Bachelor/5-semester/MLP/TF/INF-01121-tf/examples/test.txt")
+# p.init_parsing()
 # print("")
 # for f in p.functions.values():
 #     print(str(f)+"\n")
-simulator = Sim(p.functions, p.static_vars, Sim.scope_resolution_modes.DYNAMIC)
-simulator.execute()
+# simulator = Sim(p.functions, p.static_vars, Sim.scope_resolution_modes.DYNAMIC)
+# simulator.execute()
