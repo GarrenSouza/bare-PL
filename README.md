@@ -21,5 +21,5 @@
   ```python bare.py <path_to_source>```
 
 ## Authors
-  Garren Souza
+  Garren Souza\
   Pedro L. Mondadori
