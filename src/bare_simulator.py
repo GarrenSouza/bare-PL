@@ -72,7 +72,6 @@ class Simulator():
         self.program_counter += amount
 
     def attrib(self, instruction):
-        
         destination = instruction[1]
         source = instruction[2]
         if destination == self.registers.RETURN_REG.value:
@@ -90,8 +89,6 @@ class Simulator():
         self.inc_program_counter(1)
 
     def inc(self, instruction):
-        print(instruction)
-        # op1, op2
         op1 = instruction[2][0]
         op2 = instruction[2][1]
 
@@ -102,7 +99,6 @@ class Simulator():
         self.inc_program_counter(1)
 
     def if_zero(self, instruction):
-        # function, else_offset, op
         operand_value = int(instruction[2]) if self.is_constant(instruction[2]) else self.current_function.get_var_value(instruction[2], self.current_frame)
         if operand_value == 0:
             self.inc_program_counter(1)
@@ -182,16 +178,6 @@ class Simulator():
             self.current_function = function_called
             self.program_counter = 0
 
-            # instanciar activation_frame DONE
-            # setar PC de retorno no activation frame DONE
-            # setar pai dinamico DONE
-            # setar pai estatico DONE
-            # preencher parametros DONE
-            #   external variables DONE
-            # empilha o activation frame DONE
-            # atualiza current_function DONE
-            # reseta PC atual DONE
-
     def get_snapshot(self):
         snapshot = "\n# PC: "
         snapshot += f"  {str(self.program_counter)}\n"
@@ -225,14 +211,15 @@ class Simulator():
     
     def execute(self):
         print("\n@ SIMULATOR")
-        interactive_mode = input("Enter interactive mode? (y/n)")
+        interactive_mode = input("Enter interactive mode? (y/n): ")
+        get_snapshot = input("Print state snapshots? (y/n): ")
         self.functions[self.reserved_functions.GLOBAL.value].operations.append((self.operations.FUNCTION_CALL, self.reserved_functions.MAIN.value, []))
         self.function_call((self.operations.FUNCTION_CALL, self.reserved_functions.GLOBAL.value, []))
         returned = False
         while len(self.stack) > 0:
             while self.program_counter < len(self.current_function.operations) and not returned:
-                #print(self)
-                print(self.get_snapshot())
+                if(get_snapshot != 'n'):
+                    print(self.get_snapshot())
                 if(interactive_mode != 'n'):
                     input("Press Enter to execute the next instruction...")
                 instruction = self.current_function.operations[self.program_counter]

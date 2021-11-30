@@ -5,7 +5,6 @@ from src.bare_simulator import Simulator as Sim
 
 class Parser():
 
-    # let, slet, def, begin, end, ifzero, attrib, inc
     class Keywords(Enum):
         attribution = "give"
         function_definition = "def"
@@ -62,7 +61,7 @@ $$$$$c.         """            $$$$$$$^$''')
 
     def parse_def(self, tokens, static_parent):
         self.print_parse_call(self.Keywords.function_definition.value)
-        func = Function(tokens[1], static_parent) # static_parent é activation frame ou func?
+        func = Function(tokens[1], static_parent)
         for param in tokens[2:]:
             func.add_param(param)
 
@@ -89,8 +88,6 @@ $$$$$c.         """            $$$$$$$^$''')
                 operations += self.parse_slet(tokens, func)
             elif tokens[0] == self.Keywords.attribution.value:
                 operations += self.parse_attrib(tokens, func)
-            # elif tokens[0] == self.Keywords.increment.value:
-            #     operations += self.parse_inc(tokens, func)
             elif tokens[0] == self.Keywords.return_statement.value:
                 operations += self.parse_return(tokens, func)
             else:
@@ -116,7 +113,6 @@ $$$$$c.         """            $$$$$$$^$''')
             else_code = self.parse_block(func)
             then_offset = len(else_code)
 
-            # we have to add the skip length in the if-else case
             operations = [(Sim.operations.IF_ZERO, else_offset + 2, param)] + \
                             then_code + \
                             [(Sim.operations.SKIP, then_offset)] + \
@@ -148,14 +144,6 @@ $$$$$c.         """            $$$$$$$^$''')
         operations.append((Sim.operations.FUNCTION_RETURN, -1))
         self.inc_current_line(1)
         return operations
-
-    # def parse_inc(self, tokens, func):
-    #     self.print_parse_call(self.Keywords.increment.value)
-    #     operations = []
-    #     operations.append((Sim.operations.INC, tokens[1], tokens[2], Sim.registers.RETURN_REG.value))
-    #     operations.append((Sim.operations.ATTRIB, Sim.registers.AUX_REG, Sim.registers.RETURN_REG.value))
-    #     self.inc_current_line(1)
-    #     return operations
 
     def parse_attrib(self, tokens, func):
         self.print_parse_call(self.Keywords.attribution.value)
@@ -200,9 +188,7 @@ $$$$$c.         """            $$$$$$$^$''')
         print("# the bare programming language...")
         self.print_bear()
         print("----> Starting interpreter...")
-        # print(f"----> parsing: {self.file_path}")
         operations = []
-        # let, slet, def, begin, end, ifzero, attrib, inc
         while self.current_line < len(self.lines):
             tokens = self.lines[self.current_line].split(" ")
             self.print_parse_line(self.lines[self.current_line])
@@ -222,13 +208,3 @@ $$$$$c.         """            $$$$$$$^$''')
                 self.inc_current_line(1)
         self.global_scope_function.operations = operations
         print(f"----> parsed successfully!")
-
-
-# p = Parser("c:/Users/garren/OneDrive - UFRGS/Computer Science/Bachelor/5-semester/MLP/TF/INF-01121-tf/examples/test.txt")
-# p = Parser("C:/Users/garren/OneDrive - UFRGS/Computer Science/Bachelor/5-semester/MLP/TF/INF-01121-tf/examples/test.txt")
-# p.init_parsing()
-# print("")
-# for f in p.functions.values():
-#     print(str(f)+"\n")
-# simulator = Sim(p.functions, p.static_vars, Sim.scope_resolution_modes.DYNAMIC)
-# simulator.execute()
