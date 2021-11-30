@@ -202,8 +202,6 @@ $$$$$c.         """            $$$$$$$^$''')
                 operations += self.parse_slet(tokens, self.global_scope_function)
             elif tokens[0] == self.Keywords.attribution.value:
                 operations += self.parse_attrib(tokens, self.global_scope_function)
-            # elif tokens[0] == self.Keywords.increment.value:
-            #     operations += self.parse_inc(tokens, self.global_scope_function)
             else:
                 self.inc_current_line(1)
         self.global_scope_function.operations = operations
