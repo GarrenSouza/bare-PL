@@ -1,7 +1,9 @@
-from enum import Enum
 import functools
+import os
+from enum import Enum
 from src.bare_function import Function
 from src.bare_activationFrame import ActivationFrame
+
 
 class Simulator():
 
@@ -178,6 +180,17 @@ class Simulator():
             self.current_function = function_called
             self.program_counter = 0
 
+    def get_stack_snapshot(self):
+        stack_content = []
+        for frame in reversed(self.stack):
+            stack_content += frame.get_stack_representation()
+        stack_snapshot = ""
+        
+        for i in range(len(stack_content)):
+            stack_snapshot += f"{len(stack_content) - (1 + i)}: {stack_content[i]}\n"
+
+        return stack_snapshot
+
     def get_snapshot(self):
         snapshot = "\n# PC: "
         snapshot += f"  {str(self.program_counter)}\n"
@@ -189,6 +202,10 @@ class Simulator():
         for register in self.registers:
             snapshot += f"  {register.value} : {self.internal_registers[register]}\n"
         
+        print("# STACK-------------")
+        print(self.get_stack_snapshot(), end="")
+        print("# ------------------")
+
         snapshot += f"\n[ {self.current_function.name} ]\n"
         snapshot += "# Parameters\n"
         for param, offset in self.current_function.params.items():
@@ -208,11 +225,19 @@ class Simulator():
         snapshot += f" -> {self.current_frame.dynamic_link.owner.name}\n" if self.current_frame.dynamic_link != None else " -> None\n"
 
         return snapshot
-    
+
+    def clear_screen(self):
+        if os.name == 'posix':
+            _ = os.system('clear')
+        else:
+            _ = os.system('cls')
+
     def execute(self):
         print("\n@ SIMULATOR")
         interactive_mode = input("Enter interactive mode? (y/n): ")
         get_snapshot = input("Print state snapshots? (y/n): ")
+        should_clear_screen = input("Clear Screen on each iteration? (y/n): ")
+        
         self.functions[self.reserved_functions.GLOBAL.value].operations.append((self.operations.FUNCTION_CALL, self.reserved_functions.MAIN.value, []))
         self.function_call((self.operations.FUNCTION_CALL, self.reserved_functions.GLOBAL.value, []))
         returned = False
@@ -222,6 +247,8 @@ class Simulator():
                     print(self.get_snapshot())
                 if(interactive_mode != 'n'):
                     input("Press Enter to execute the next instruction...")
+                if(should_clear_screen != 'n'):
+                    self.clear_screen()
                 instruction = self.current_function.operations[self.program_counter]
                 if instruction[0] == self.operations.ATTRIB:
                     self.attrib(instruction)
@@ -259,6 +286,6 @@ class Simulator():
                 if self.scope_resolution_mode == self.scope_resolution_modes.STATIC:
                     self.set_var_value_statically(external_var, current_func.get_var_value(external_var, current_activation_frame), current_activation_frame)
                 elif self.scope_resolution_mode == self.scope_resolution_modes.DYNAMIC:
-                    self.set_var_value_statically(external_var, current_func.get_var_value(external_var, current_activation_frame), current_activation_frame)
+                    self.set_var_value_dynamically(external_var, current_func.get_var_value(external_var, current_activation_frame), current_activation_frame)
                 else:
                     raise ValueError

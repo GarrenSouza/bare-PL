@@ -11,6 +11,33 @@ class ActivationFrame():
         self.temp_vars = []
         self.previous_PC = 0
 
+    def get_owner_name(self):
+        return self.owner.name if self.owner != None else "None"
+
+    def get_dynamic_link_str(self):
+        return self.dynamic_link.get_owner_name() if self.dynamic_link != None else "None"
+
+    def get_static_link_str(self):
+        return self.static_link.get_owner_name() if self.static_link != None else "None"
+
+    def get_stack_representation(self):
+        stack_rep = []
+        if self.local_vars:
+            stack_rep += self.local_vars
+        if self.static_vars:
+            stack_rep += self.static_vars
+        if self.temp_vars:
+            stack_rep += self.temp_vars
+        if self.external_vars:
+            stack_rep += self.external_vars
+        if self.params:
+            stack_rep += self.params
+        stack_rep.append(self.get_dynamic_link_str())
+        stack_rep.append(self.get_static_link_str())
+        stack_rep.append(self.get_owner_name())
+        stack_rep.append(self.previous_PC)
+        return stack_rep
+
     def get_deep_copy(self):
         copy = ActivationFrame(self.owner)
         copy.static_link = self.static_link
