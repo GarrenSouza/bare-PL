@@ -23,6 +23,7 @@ class Parser():
         self.lines = self.load_lines(file_path)
         self.global_scope_function = Function(Sim.reserved_functions.GLOBAL.value, None)
         self.functions = {self.global_scope_function.name : self.global_scope_function}
+        self.verbose_compiling = False
 
     def inc_current_line(self, amount):
         self.current_line += amount
@@ -49,10 +50,12 @@ $$$$$c.         """            $$$$$$$^$''')
     
     # parsing key operations
     def print_parse_call(self, keyword):
-        print(f">> parsing {keyword}")
+        if self.verbose_compiling:
+            print(f">> parsing {keyword}")
 
     def print_parse_line(self, line):
-        print(f"@ line[{self.current_line + 1}] {line}")
+        if self.verbose_compiling:
+            print(f"@ line[{self.current_line + 1}] {line}")
 
     def define_static_variable(self, func, var_name):
         if func.name not in self.static_vars.keys():
@@ -187,7 +190,10 @@ $$$$$c.         """            $$$$$$$^$''')
     def init_parsing(self):
         print("# the bare programming language...")
         self.print_bear()
-        print("----> Starting interpreter...")
+        answer = input("Set compiller to verbose mode? (y/n): ")
+        if answer != 'n':
+            self.verbose_compiling = True
+        print("----> Starting compiler...")
         operations = []
         while self.current_line < len(self.lines):
             tokens = self.lines[self.current_line].split(" ")
@@ -207,4 +213,4 @@ $$$$$c.         """            $$$$$$$^$''')
             else:
                 self.inc_current_line(1)
         self.global_scope_function.operations = operations
-        print(f"----> parsed successfully!")
+        print(f"----> Lean Code generated successfully!")

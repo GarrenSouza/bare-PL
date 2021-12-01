@@ -233,22 +233,25 @@ class Simulator():
             _ = os.system('cls')
 
     def execute(self):
-        print("\n@ SIMULATOR")
+        print("\n@ Lean Maschine")
         interactive_mode = input("Enter interactive mode? (y/n): ")
-        get_snapshot = input("Print state snapshots? (y/n): ")
-        should_clear_screen = input("Clear Screen on each iteration? (y/n): ")
+        if interactive_mode != 'n':
+            get_snapshot = input("Print state snapshots? (y/n): ")
+            if get_snapshot != 'n':
+                should_clear_screen = input("Clear Screen on each iteration? (y/n): ")
         
         self.functions[self.reserved_functions.GLOBAL.value].operations.append((self.operations.FUNCTION_CALL, self.reserved_functions.MAIN.value, []))
         self.function_call((self.operations.FUNCTION_CALL, self.reserved_functions.GLOBAL.value, []))
         returned = False
         while len(self.stack) > 0:
             while self.program_counter < len(self.current_function.operations) and not returned:
-                if(get_snapshot != 'n'):
-                    print(self.get_snapshot())
-                if(interactive_mode != 'n'):
-                    input("Press Enter to execute the next instruction...")
-                if(should_clear_screen != 'n'):
-                    self.clear_screen()
+                if interactive_mode != 'n':
+                    if get_snapshot != 'n':
+                        print(self.get_snapshot())
+                        input("Press Enter to execute the next instruction...")
+                        if should_clear_screen != 'n'                                                                                 :
+                            self.clear_screen()
+
                 instruction = self.current_function.operations[self.program_counter]
                 if instruction[0] == self.operations.ATTRIB:
                     self.attrib(instruction)
